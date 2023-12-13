@@ -1,0 +1,217 @@
+---
+title: Installation Node
+layout: '~/layouts/TestnetLayout.astro'
+network: Testnet
+icon: chainflip
+---
+
+Adding Chainflip APT Repo
+```
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL repo.chainflip.io/keys/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/chainflip.gpg
+```
+
+Verify the key's authenticity:
+```
+gpg --show-keys /etc/apt/keyrings/chainflip.gpg
+```
+
+Important: Make sure you see the following output from the terminal:
+```
+pub rsa3072 2022-11-08 [SC] [expires: 2024-11-07]
+BDBC3CF58F623694CD9E3F5CFB3E88547C6B47C6
+uid Chainflip Labs GmbH <dev@chainflip.io>
+sub rsa3072 2022-11-08 [E] [expires: 2024-11-07]
+```
+After that, add Chainflip's Repo to apt sources list:
+```
+echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/chainflip.gpg] https://repo.chainflip.io/perseverance/$(lsb_release -c -s) $(lsb_release -c -s) main" | sudo tee /etc/apt/sources.list.d/chainflip.list
+```
+
+### Installing The Packages
+```
+sudo apt update
+sudo apt install -y chainflip-cli chainflip-node chainflip-engine1.1
+```
+
+### Generating Validator Keys
+```
+chainflip-cli generate-keys --path /etc/chainflip/keys
+```
+**Make sure to back up your Seed Phrase and make a note of the public keys and account ID. You will need the Seed Phrase if you ever need to restore your node or recover your funds if you lose access to the node. DO NOT LOSE THIS.**
+And you must ensure that the public Ethereum address generated above has at least 0.1 gETH. Make sure you send 0.1 gETH to this account's address before trying to add funds to your validator node
+
+### Create the engine config file
+Replace IP_ADDRESS_OF_YOUR_NODE with your server's public IP Address. To find it, use: `curl -w "\n" ifconfig.me`
+Additionally, provide the ws_endpoint and http_endpoint specific to your chosen Ethereum client. The format varies based on the client you're using.
+```
+# Default configurations for the CFE
+[node_p2p]
+node_key_file = "/etc/chainflip/keys/node_key_file"
+ip_address = "IP_ADDRESS_OF_YOUR_NODE"
+port = "8078"
+ 
+[state_chain]
+ws_endpoint = "ws://127.0.0.1:9944"
+signing_key_file = "/etc/chainflip/keys/signing_key_file"
+ 
+[eth]
+# Ethereum private key file path. This file should contain a hex-encoded private key.
+private_key_file = "/etc/chainflip/keys/ethereum_key_file"
+ 
+[eth.rpc]
+ws_endpoint = "wss://my_local_geth_node:8546"
+http_endpoint = "https://my_local_geth_node:8545"
+ 
+# Optional
+# [eth.backup_rpc]
+# ws_endpoint = "wss://some_public_rpc.com:443/<secret_access_key>"
+# http_endpoint = "https://some_public_rpc.com:443/<secret_access_key>"
+ 
+[dot.rpc]
+ws_endpoint = "wss://rpc-pdot.chainflip.io:443"
+http_endpoint = "https://rpc-pdot.chainflip.io:443"
+ 
+# Optional
+# [dot.backup_rpc]
+# ws_endpoint = "wss://rpc-pdot2.chainflip.io:443"
+# http_endpoint = "https://rpc-pdot2.chainflip.io:443"
+ 
+[btc.rpc]
+basic_auth_user = "flip"
+basic_auth_password = "flip"
+http_endpoint = "http://a108a82b574a640359e360cf66afd45d-424380952.eu-central-1.elb.amazonaws.com"
+ 
+# Optional
+# [btc.backup_rpc]
+# basic_auth_user = "flip2"
+# basic_auth_password = "flip2"
+# http_endpoint = "http://second-node-424380952.eu-central-1.elb.amazonaws.com"
+ 
+# Optional (default: 36079)
+# [logging]
+# command_server_port = 36079
+```
+
+### Starting the Node
+```
+sudo systemctl start chainflip-node
+```
+check the service status 
+```
+systemctl status chainflip-node
+```
+At this point, you will need to wait for your node to catch up with the latest block. You can find the latest block on our [Block Explorer](https://blocks-perseverance.chainflip.io/)
+
+Check the Node:
+```
+journalctl -f -u chainflip-node.service
+```
+The node will ouput the following when started:
+```
+2023-03-24 08:21:30 💻 Memory: 7957MB
+2023-03-24 08:21:30 💻 Kernel: 5.4.0-122-generic
+2023-03-24 08:21:30 💻 Linux distribution: Ubuntu 20.04.4 LTS
+2023-03-24 08:21:30 💻 Virtual machine: yes
+2023-03-24 08:21:30 📦 Highest known block at #0
+2023-03-24 08:21:30 〽️ Prometheus exporter started at 127.0.0.1:9615
+2023-03-24 08:21:30 Running JSON-RPC HTTP server: addr=127.0.0.1:9933, allowed origins=Some(["http://localhost:*", "http://127.0.0.1:*", "https://localhost:*", "https://127.0.0.1:*", "https://polkadot.js.org"])
+2023-03-24 08:21:30 Running JSON-RPC WS server: addr=127.0.0.1:9944, allowed origins=Some(["http://localhost:*", "http://127.0.0.1:*", "https://localhost:*", "https://127.0.0.1:*", "https://polkadot.js.org"])
+2023-03-24 08:21:30 🔍 Discovered new external address for our node: /ip4/178.128.36.211/tcp/30333/p2p/12D3KooWMDs3oyT2YpQw88V7TdmN1dJa73D1jrfQorLaBovh7Kim
+2023-03-24 08:21:35 ⏩ Warping, Downloading finality proofs, 7.99 Mib (10 peers), best: #0 (0x2d00…c9b3), finalized #0 (0x2d00…c9b3), ⬇ 1.6MiB/s ⬆ 27.8kiB/s
+2023-03-24 08:21:40 ⏩ Warping, Downloading finality proofs, 15.97 Mib (14 peers), best: #0 (0x2d00…c9b3), finalized #0 (0x2d00…c9b3), ⬇ 1.7MiB/s ⬆ 25.8kiB/s
+2023-03-24 08:21:45 ⏩ Warping, Downloading state, 40.83 Mib (15 peers), best: #0 (0x2d00…c9b3), finalized #0 (0x2d00…c9b3), ⬇ 3.5MiB/s ⬆ 14.0kiB/s
+2023-03-24 08:21:50 ⏩ Warping, Importing state, 58.00 Mib (15 peers), best: #0 (0x2d00…c9b3), finalized #0 (0x2d00…c9b3), ⬇ 2.0MiB/s ⬆ 3.1kiB/s
+2023-03-24 08:21:54 Unable to author block in slot. No best block header: Chain lookup failed: Failed to get header for hash 0x0cdb…b083
+2023-03-24 08:21:55 ⏩ Warping, Importing state, 58.00 Mib (15 peers), best: #1913239 (0x5b6b…c1b3), finalized #1913239 (0x5b6b…c1b3), ⬇ 9.3kiB/s ⬆ 1.3kiB/s
+2023-03-24 08:21:56 Warp sync is complete (57 MiB), restarting block sync.
+2023-03-24 08:21:57 ✨ Imported #1913240 (0xa922…5e2e)
+2023-03-24 08:21:57 ✨ Imported #1913241 (0x3a15…012e)
+```
+
+Starting the Engine `chainflip-engine`
+```
+sudo systemctl start chainflip-engine1.1
+```
+To check on the service, use status.
+```
+systemctl status chainflip-engine1.1
+```
+Check the engine logs:
+```
+journalctl -f -u chainflip-engine1.1.service
+```
+You should see some output that looks like this:
+```
+
+                         ██████╗██╗  ██╗ █████╗ ██╗███╗   ██╗███████╗██╗     ██╗██████╗
+                        ██╔════╝██║  ██║██╔══██╗██║████╗  ██║██╔════╝██║     ██║██╔══██╗
+                        ██║     ███████║███████║██║██╔██╗ ██║█████╗  ██║     ██║██████╔╝
+                        ██║     ██╔══██║██╔══██║██║██║╚██╗██║██╔══╝  ██║     ██║██╔═══╝
+                        ╚██████╗██║  ██║██║  ██║██║██║ ╚████║██║     ███████╗██║██║
+                         ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝╚═╝     ╚══════╝╚═╝╚═╝
+Your Chainflip account  is not funded. Note, it may take some time for your funds to be detected. WAITING for your account to be funded at block: 1
+```
+
+In the next section, you'll learn how to fund your node. After you do so the warnings should stop and the output will look something like this:
+```
+{"tag":"","msg":"Processing SC block 3591 with block hash: 0xe3ba3f20dc6d6d5956a88e5fcae06cdbb5c9cbf486a8db50cc5a1403bb4f0446","level":"debug","ts":"2022-11-08T15:56:13.652392888+00:00","component":"SCObserver"} {"tag":"","msg":"Processing SC block 3592 with block hash: 0x34155ced75831f45b17af9a792e057eabe148428b450ece4408f546342343669","level":"debug","ts":"2022-11-08T15:56:19.052722257+00:00","component":"SCObserver"} {"tag":"","msg":"Processing SC block 3593 with block hash: 0x50fdbb6ad0657f0d818e783330d697186d649e793046c7f67f8120559243b5d6","level":"debug","ts":"2022-11-08T15:56:25.782233200+00:00","component":"SCObserver"} {"tag":"","msg":"Processing SC block 3594 with block hash: 0xb878309015b27f7b8bc19c67ff5774841d44d9ed4ce189ebd5df32d0a90e5ae5","level":"debug","ts":"2022-11-08T15:56:31.181866542+00:00","component":"SCObserver"} {"tag":"","msg":"Processing SC block 3595 with block hash: 0xa047c1f10f595cd73148aa4866a40edb3da87ddd13ae03351c19a8d677cb99ec","level":"debug","ts":"2022-11-08T15:56:37.890330488+00:00","component":"SCObserver"} {"tag":"","msg":"Processing SC block 3596 with block hash: 0xaecccf0842c7253bbbc736baa86cebc07d5e6dc6b5b95e73d1ace73e5552fcfd","level":"debug","ts":"2022-11-08T15:56:43.274036666+00:00","component":"SCObserver"} {"tag":"","msg":"Processing SC block 3597 with block hash: 0xc4218c16ed3f6745433ec4b50dde94cb3b1a917ee8ddc35f17dc4e956380a787","level":"debug","ts":"2022-11-08T15:56:50.015185019+00:00","component":"SCObserver"} {"tag":"","msg":"Processing SC block 3598 with block hash: 0x3a79dc208b48276e7b734da0c8702f817d1a435476d09cbd972f09d3e5786851","level":"debug","ts":"2022-11-08T15:56:55.406457068+00:00","component":"SCObserver"} {"tag":"","msg":"Processing SC block 3599 with block hash: 0x49a53aa5f42190e5dc38d2e44d96235c656eec4101edd7fb26869466635216c3","level":"debug","ts":"2022-11-08T15:57:00.797006133+00:00","component":"SCObserver"}
+```
+
+### Enable systemd Services
+Tell both the services to start again after a reboot:
+```
+sudo systemctl enable chainflip-node
+```
+```
+sudo systemctl enable chainflip-engine1.1
+```
+after all is done Funding & Bidding your account by following the instructions [here](https://docs.chainflip.io/testnet/funding/funding-and-bidding)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
