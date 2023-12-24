@@ -1,0 +1,97 @@
+---
+layout: '~/layouts/MarkdownLayout.astro'
+title: Installation Node
+network: Testnet
+icon: pryzm
+chain: indigo-1	
+---
+
+### Install Dependencies
+```
+sudo apt -q update
+sudo apt -qy install curl git jq lz4 build-essential fail2ban ufw
+sudo apt -qy upgrade
+```
+
+### Install Go
+```
+ver="1.19" && \
+wget "https://golang.org/dl/go$ver.linux-amd64.tar.gz" && \
+sudo rm -rf /usr/local/go && \
+sudo tar -C /usr/local -xzf "go$ver.linux-amd64.tar.gz" && \
+rm "go$ver.linux-amd64.tar.gz" && \
+echo "export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin" >> $HOME/.bash_profile && \
+source $HOME/.bash_profile && \
+go version
+```
+
+### Download and build binaries
+```
+cd $HOME
+wget https://storage.googleapis.com/pryzm-resources/pryzmd-0.9.0-linux-amd64.tar.gz
+tar -xzvf pryzmd-0.9.0-linux-amd64.tar.gz
+mv pryzmd /root/go/bin
+```
+
+### Initialize the node
+```
+pryzmd init $MONIKER --chain-id indigo-1
+pryzmd config chain-id indigo-1
+pryzmd config keyring-backend test
+```
+
+### Genesis
+```
+wget -O genesis.json https://snapshots.polkachu.com/testnet-genesis/pryzm/genesis.json --inet4-only
+mv genesis.json ~/.pryzm/config
+```
+### Addrbook 
+```
+wget -O addrbook.json https://snapshots.polkachu.com/testnet-addrbook/pryzm/addrbook.json --inet4-only
+mv addrbook.json ~/.pryzm/config
+```
+Seed, Peer & Gas
+```
+seeds="ade4d8bc8cbe014af6ebdf3cb7b1e9ad36f412c0@testnet-seeds.polkachu.com:24856,d1d43cc7c7aef715957289fd96a114ecaa7ba756@testnet-seeds.nodex.one:23210"
+sed -i.bak -e "s/^seeds =.*/seeds = \"$seeds\"/" $HOME/.pryzm/config/config.toml
+sed -i -e "s|^minimum-gas-prices *=.*|minimum-gas-prices = \"0upryzm\"|" $HOME/.pryzm/config/app.toml
+```
+
+### Prunning
+```
+pruning="custom" && \
+pruning_keep_recent="100" && \
+pruning_keep_every="0" && \
+pruning_interval="10" && \
+sed -i -e "s/^pruning *=.*/pruning = \"$pruning\"/" $HOME/.pryzm/config/app.toml && \
+sed -i -e "s/^pruning-keep-recent *=.*/pruning-keep-recent = \"$pruning_keep_recent\"/" $HOME/.pryzm/config/app.toml && \
+sed -i -e "s/^pruning-keep-every *=.*/pruning-keep-every = \"$pruning_keep_every\"/" $HOME/.pryzm/config/app.toml && \
+sed -i -e "s/^pruning-interval *=.*/pruning-interval = \"$pruning_interval\"/" $HOME/.pryzm/config/app.toml
+```
+
+### Service
+```
+sudo tee /etc/systemd/system/pryzmd.service << EOF
+[Unit]
+Description=pryzm
+After=network-online.target
+
+[Service]
+User=$USER
+ExecStart=$(which pryzmd) start
+RestartSec=3
+Restart=on-failure
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target
+EOF
+```
+
+#### Start
+```
+sudo systemctl daemon-reload
+sudo systemctl enable pryzmd
+sudo systemctl restart pryzmd
+sudo journalctl -u pryzmd -f -o cat
+```
