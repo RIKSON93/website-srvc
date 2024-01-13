@@ -1,10 +1,7 @@
 ---
-layout: '~/layouts/MarkdownLayout.astro'
+layout: '~/layouts/TestnetLayout.astro'
 title: Node CLI Cheatsheet
 icon : artela
-network: Testnet
-chain: artela_11822-1
-version: v0.4.7-rc4
 ---
 
 <style>
