@@ -12,66 +12,53 @@ import { Picture } from '@astrojs/image/components'
       .btn:hover {
         transform: translateY(-10px);
       }
-	  html {
-  scroll-behavior: smooth;
-}
-
+      html {
+        scroll-behavior: smooth;
+      }
     </style>
   </head>
- 	 							<body>
-
-<section class="relative md:-mt-[76px]">
-	<div class="max-w-6xl mx-auto px-4 sm:px-6" id="hero">
-		<div class="py-12 md:py-20">
-			<div class="text-center pb-10 md:pb-16 max-w-5xl mx-auto">
-				<h1 class="text-5xl md:text-[3.50rem] font-bold leading-tighter tracking-tighter mb-6 font-heading">
-					 Staking Service					
-				</h1>
-				<div class="max-w-2xl mx-auto">
-					<p class="text-xl text-gray-600 mb-2 dark:text-slate-400">
-						IBC Relayer & Professional PoS Network Validator					
-					</p>
-					<p class="text-xl font-bold text-gray-600 mb-2 dark:text-slate-400">
-						Stake and Take your rewards	
-					</p>
-					<p class="text-xl text-gray-600 mb-8 dark:text-slate-400">
-						Low Fees , Highly Secured , And 24/7 Monitored					
-					</p>
-					<div class="max-w-xs sm:max-w-md m-auto flex flex-nowrap flex-col sm:flex-row sm:justify-center gap-4">
-						<div class="flex w-full sm:w-auto">
-							<a
-								class="btn w-full"
-								href="#features">About us</a
-							>
-						</div>
-						<script>
-							document.querySelector('.btn').addEventListener('click', function(event) {
-							  event.preventDefault();
-							  document.querySelector('#features').scrollIntoView({ 
-								behavior: 'smooth' 
-							  });
-							});
-						  </script>
-					</body>
-					</div>
-				</div>
-			</div>
-			<div>
-				<div class="relative m-auto max-w-4xl">
-					<Picture
-						src={import('~/assets/images/banner.png')}
-						class="mx-auto rounded-md w-full"
-						widths={[400, 768, 1480, 3124]}
-						sizes="(max-width: 3124px) 886px, (max-width: 1479px) 768px, 1480px"
-						alt="Hero Image"
-						aspectRatio={3124/886}
-						loading="eager"
-						width={3024}
-						height={886}
-					/>
-				</div>
-			</div>
-		</div>
-	</div>
-</section>
+  <body>
+    <section class="relative md:-mt-[76px]">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6" id="hero">
+        <div class="py-12 md:py-20">
+          <div class="text-center pb-10 md:pb-16 max-w-5xl mx-auto">
+            <h1 class="text-5xl md:text-[3.50rem] font-bold leading-tighter tracking-tighter mb-6 font-heading">
+              Sychonix Service
+            </h1>
+            <div class="max-w-2xl mx-auto">
+              <!-- Removed the next three paragraphs -->
+              <div class="max-w-xs sm:max-w-md m-auto flex flex-nowrap flex-col sm:flex-row sm:justify-center gap-4">
+                <div class="flex w-full sm:w-auto">
+                  <a class="btn w-full" href="#features">About us</a>
+                </div>
+                <script>
+                  document.querySelector('.btn').addEventListener('click', function (event) {
+                    event.preventDefault();
+                    document.querySelector('#features').scrollIntoView({
+                      behavior: 'smooth',
+                    });
+                  });
+                </script>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="relative m-auto max-w-4xl">
+              <Picture
+                src={import('~/assets/images/banner.png')}
+                class="mx-auto rounded-md w-full"
+                widths={[400, 768, 1480, 3124]}
+                sizes="(max-width: 3124px) 886px, (max-width: 1479px) 768px, 1480px"
+                alt="Hero Image"
+                aspectRatio={3124 / 886}
+                loading="eager"
+                width={3024}
+                height={886}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </body>
 </html>
