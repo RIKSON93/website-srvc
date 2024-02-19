@@ -1,0 +1,105 @@
+---
+layout: '~/layouts/TestnetLayout.astro'
+icon: side
+---
+
+### Install dependencies 
+
+```
+sudo apt update && sudo apt upgrade -y
+apt install curl iptables build-essential git wget jq make gcc nano tmux htop nvme-cli pkg-config libssl-dev libleveldb-dev tar clang bsdmainutils ncdu unzip libleveldb-dev -y```
+
+### Install go
+```
+ver="1.21.1"
+wget "https://golang.org/dl/go$ver.linux-amd64.tar.gz"
+sudo rm -rf /usr/local/go
+sudo tar -C /usr/local -xzf "go$ver.linux-amd64.tar.gz"
+rm "go$ver.linux-amd64.tar.gz"
+echo "export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin" >> ~/.bash_profile
+source ~/.bash_profile
+go version
+```
+
+### Install binary
+
+```
+cd $HOME
+git clone -b dev https://github.com/sideprotocol/sidechain.git
+cd sidechain
+git checkout 0.0.1-75-gbd63479
+make install
+```
+### Initialize the node
+```
+sided init your_moniker --chain-id side-testnet-1
+sided config chain-id side-testnet-1
+```
+
+### Genesis
+```
+wget https://raw.githubusercontent.com/sideprotocol/testnet/main/shambhala/genesis.json -O $HOME/.sidechain/config/genesis.json
+```
+### Addrbook 
+```
+wget -O $HOME/.sidechain/config/addrbook.json "https://raw.githubusercontent.com/obajay/nodes-Guides/main/Projects/Side_Protocol/addrbook.json"
+```
+Seed, Peer & Gas
+```
+sed -i.bak -e "s/^minimum-gas-prices *=.*/minimum-gas-prices = \"0.005uside\"/;" ~/.sidechain/config/app.toml
+external_address=$(wget -qO- eth0.me) 
+sed -i.bak -e "s/^external_address *=.*/external_address = \"$external_address:26656\"/" $HOME/.sidechain/config/config.toml
+peers="2eba9c8e6fb9d56bbdd10d007a598541c37f6493@13.212.61.41:26656"
+sed -i.bak -e "s/^persistent_peers *=.*/persistent_peers = \"$peers\"/" $HOME/.sidechain/config/config.toml
+seeds=""
+sed -i.bak -e "s/^seeds =.*/seeds = \"$seeds\"/" $HOME/.sidechain/config/config.toml
+sed -i 's/max_num_inbound_peers =.*/max_num_inbound_peers = 50/g' $HOME/.sidechain/config/config.toml
+sed -i 's/max_num_outbound_peers =.*/max_num_outbound_peers = 50/g' $HOME/.sidechain/config/config.toml
+```
+
+### Prunning
+```
+pruning="custom"
+pruning_keep_recent="1000"
+pruning_keep_every="0"
+pruning_interval="10"
+sed -i -e "s/^pruning *=.*/pruning = \"$pruning\"/" $HOME/.sidechain/config/app.toml
+sed -i -e "s/^pruning-keep-recent *=.*/pruning-keep-recent = \"$pruning_keep_recent\"/" $HOME/.sidechain/config/app.toml
+sed -i -e "s/^pruning-keep-every *=.*/pruning-keep-every = \"$pruning_keep_every\"/" $HOME/.sidechain/config/app.toml
+sed -i -e "s/^pruning-interval *=.*/pruning-interval = \"$pruning_interval\"/" $HOME/.sidechain/config/app.toml
+```
+
+### Service
+```
+sudo tee /etc/systemd/system/sided.service > /dev/null <<EOF
+[Unit]
+Description=sided
+After=network-online.target
+
+[Service]
+User=$USER
+ExecStart=$(which sided) start
+Restart=on-failure
+RestartSec=3
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target
+EOF
+```
+
+#### Start
+```
+sudo systemctl daemon-reload
+sudo systemctl enable sided
+sudo systemctl restart sided
+sudo journalctl -u sided -f -o cat
+```
+
+### Create Validator
+
+Heads up to the Cheat Sheets to create validator
+
+<a href="https://service.sychonix.me/testnet/side/cheat" target="_blank">
+  <button style="background-color: green; border: none; color: white; padding: 15px 32px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; margin: 4px 2px; cursor: pointer; border-radius: 10px; box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);" onmouseover="this.style.boxShadow='0 0 0 4px rgba(0,255,0,0.5)'" onmouseout="this.style.boxShadow='0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19)'">CLI Cheatsheets</button>
+</a>
