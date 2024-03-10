@@ -1,0 +1,8 @@
+---
+layout: '~/layouts/TestnetLayout.astro'
+icon: crossfi
+---
+
+```
+https://api-crossfi-testnet.sychonix.xyz
+```
